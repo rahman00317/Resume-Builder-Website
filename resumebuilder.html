@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Smart Resume Generator</title>
+
+  <!-- jsPDF + html2canvas -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <style>
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f4f6f9;
+      color: #333;
+    }
+
+    h2 {
+      text-align: center;
+      padding: 20px;
+      margin: 0;
+      background: #0078d7;
+      color: white;
+    }
+
+    #form {
+      max-width: 800px;
+      margin: 20px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    .input-block {
+      margin-bottom: 15px;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button:first-of-type {
+      background: #0078d7;
+      color: white;
+    }
+    button:last-of-type {
+      background: #28a745;
+      color: white;
+    }
+
+    #resume-preview {
+      max-width: 600px;
+      margin: 30px auto;
+      padding: 30px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      display: none;
+      color: black;
+    }
+
+    #resume-preview h2 {
+      text-align: center;
+      text-decoration: underline;
+      color: black;
+      background: none;
+      padding: 0;
+    }
+
+    ul {
+      margin: 5px 0 5px 20px;
+      padding: 0;
+    }
+
+    table td {
+      padding: 3px 8px;
+      vertical-align: top;
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 10px; }
+      #form, #resume-preview { width: 100%; padding: 15px; }
+      input, textarea, select { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<h2>Resume Builder</h2>
+
+<div id="form">
+  <div class="input-block"><label>Full Name:<input id="name" required /></label></div>
+  <div class="input-block"><label>Email:<input id="email" type="email" required /></label></div>
+  <div class="input-block"><label>Mobile Number:<input id="mobile" type="tel" required /></label></div>
+  <div class="input-block"><label>Address:<textarea id="address"></textarea></label></div>
+  <div class="input-block"><label>12th Qualification:<input id="edu12" /></label></div>
+  <div class="input-block"><label>10th Qualification:<input id="edu10" /></label></div>
+  <div class="input-block"><label>Skills (comma separated):<input id="skills" /></label></div>
+  <div class="input-block"><label>Work Experience (comma separated):<input id="experience" /></label></div>
+  <div class="input-block"><label>Father's Name:<input id="father" /></label></div>
+  <div class="input-block"><label>Date of Birth:<input type="date" id="dob" /></label></div>
+  <div class="input-block"><label>Gender:
+    <select id="gender"><option>Male</option><option>Female</option><option>Other</option></select>
+  </label></div>
+  <div class="input-block"><label>Marital Status:
+    <select id="marital"><option>Unmarried</option><option>Married</option></select>
+  </label></div>
+  <div class="input-block"><label>Nationality:<input id="nationality" /></label></div>
+  <div class="input-block"><label>Languages Known:<input id="languages" /></label></div>
+  <div class="input-block"><label>Hobbies:<input id="hobbies" /></label></div>
+  <div class="input-block"><label>Place:<input id="place" /></label></div>
+
+  <button onclick="generateResume()">Generate Resume</button>
+  <button onclick="downloadResume()">Download PDF</button>
+</div>
+
+<div id="resume-preview"></div>
+
+<script>
+function generateResume() {
+  const name = document.getElementById("name").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const mobile = document.getElementById("mobile").value.trim();
+
+  if (!name || !email || !mobile) {
+    alert("Please fill Name, Email, and Mobile Number.");
+    return;
+  }
+
+  const address = document.getElementById("address").value;
+  const edu12 = document.getElementById("edu12").value;
+  const edu10 = document.getElementById("edu10").value;
+  const skills = document.getElementById("skills").value.split(',');
+  const experience = document.getElementById("experience").value.split(',');
+  const father = document.getElementById("father").value;
+  const dob = document.getElementById("dob").value;
+  const gender = document.getElementById("gender").value;
+  const marital = document.getElementById("marital").value;
+  const nationality = document.getElementById("nationality").value;
+  const languages = document.getElementById("languages").value;
+  const hobbies = document.getElementById("hobbies").value;
+  const place = document.getElementById("place").value;
+  const today = new Date().toLocaleDateString();
+
+  const objective = "Obtain a responsible position in an organization with the best capabilities, skills and knowledge.";
+
+  const skillList = skills[0].trim() !== "" 
+    ? skills.map(s => `<li>${s.trim()}</li>`).join('') 
+    : "<li>None</li>";
+
+  const experienceList = experience[0].trim() !== "" 
+    ? experience.map(s => `<li>${s.trim()}</li>`).join('') 
+    : "<li>None</li>";
+
+  const resume = document.getElementById("resume-preview");
+  resume.style.display = "block";
+  resume.innerHTML = `
+    <h2>RESUME</h2>
+    <p><strong>${name}</strong><br>
+    <strong>Email:</strong> ${email}<br>
+    <strong>Mobile:</strong> ${mobile}<br>
+    <strong>Address:</strong> ${address}</p><hr>
+
+    <p><strong>CAREER OBJECTIVE</strong><br><ul><li>${objective}</li></ul></p>
+
+    <p><strong>ACADEMIC QUALIFICATION:</strong><br>
+    <ul><li>12th : ${edu12}</li><li>10th : ${edu10}</li></ul></p>
+
+    <p><strong>PROFESSIONAL SKILLS:</strong><br>
+    <ul>${skillList}</ul></p>
+
+    <p><strong>WORK EXPERIENCE:</strong><br><ul>${experienceList}</ul></p>
+
+    <p><strong>PERSONAL DETAILS:</strong><br>
+    <table>
+      <tr><td>Father’s Name</td><td>:</td><td>${father}</td></tr>
+      <tr><td>Date of Birth</td><td>:</td><td>${dob}</td></tr>
+      <tr><td>Gender</td><td>:</td><td>${gender}</td></tr>
+      <tr><td>Marital Status</td><td>:</td><td>${marital}</td></tr>
+      <tr><td>Nationality</td><td>:</td><td>${nationality}</td></tr>
+      <tr><td>Languages Known</td><td>:</td><td>${languages}</td></tr>
+      <tr><td>Hobbies</td><td>:</td><td>${hobbies}</td></tr>
+    </table></p>
+
+    <p>Place: ${place}<br>Date: ${today}</p>
+    <p style="text-align:right;"><em>${name}</em></p>
+  `;
+}
+
+async function downloadResume() {
+  const resume = document.getElementById("resume-preview");
+  if (resume.innerHTML.trim() === "") {
+    alert("Please generate the resume first.");
+    return;
+  }
+
+  const canvas = await html2canvas(resume, { scale: 2, backgroundColor: "#ffffff" });
+  const imgData = canvas.toDataURL("image/png");
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF("p", "pt", "a4");
+
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  const imgWidth = pageWidth;
+  const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+  let heightLeft = imgHeight;
+  let position = 0;
+
+  pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+  heightLeft -= pageHeight;
+
+  while (heightLeft > 0) {
+    position = heightLeft - imgHeight;
+    pdf.addPage();
+    pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+  }
+
+  pdf.save("Resume.pdf");
+}
+</script>
+
+</body>
+</html>
+
+<!---- client ID = 381785853096-c62h6hko38dpmekiksbpcvec40208h7a.apps.googleusercontent.com --->
+<!---- script URL = https://script.google.com/macros/s/AKfycby76EZz9P63FyEaZVXZs5SLzrYlob47Ug_aOnsl8paRZQrjf3L2SlXcN1xIiWxAKWK9/exec ---->

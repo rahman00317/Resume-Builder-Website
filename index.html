@@ -2,208 +2,63 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Resume Builder - Auth</title>
+  <title>Login / Signup</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f0f2f5;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    .container {
-      background: #fff;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
-      width: 100%;
-      max-width: 400px;
-    }
-    h2 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    input {
-      width: 100%;
-      padding: 12px;
-      margin: 8px 0;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-    .password-box {
-      position: relative;
-    }
-    .toggle-pass {
-      position: absolute;
-      right: 10px;
-      top: 14px;
-      cursor: pointer;
-      font-size: 13px;
-      color: #007BFF;
-    }
-    button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-      border: none;
-      border-radius: 5px;
-      background: #007BFF;
-      color: #fff;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #0056b3;
-    }
-    .toggle-link {
-      text-align: center;
-      margin-top: 15px;
-      color: #007BFF;
-      cursor: pointer;
-    }
-    .toggle-link:hover {
-      text-decoration: underline;
-    }
-    #output {
-      margin-top: 15px;
-      font-size: 14px;
-      text-align: center;
-    }
-    .error { color: red; }
-    .success { color: green; }
+    body { font-family: Arial, sans-serif; background: #f2f2f2; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    .container { background: #fff; padding: 30px; border-radius: 10px; width: 350px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    h2 { text-align: center; margin-bottom: 20px; }
+    input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
+    button { width: 100%; padding: 10px; background: #4285f4; border: none; color: #fff; font-weight: bold; border-radius: 5px; cursor: pointer; }
+    button:hover { background: #357ae8; }
+    .msg { margin-top: 15px; text-align: center; font-weight: bold; }
   </style>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
   <div class="container">
-    <h2 id="formTitle">Sign Up</h2>
+    <h2>Sign Up</h2>
+    <input type="email" id="signupEmail" placeholder="Email" required>
+    <input type="password" id="signupPassword" placeholder="Password" autocomplete="new-password" required>
+    <button onclick="signup()">Sign Up</button>
 
-    <!-- Sign Up Form -->
-    <form id="signupForm">
-      <input type="text" id="signupName" placeholder="Full Name" required>
-      <input type="email" id="signupEmail" placeholder="Email" required>
-      <div class="password-box">
-        <input type="password" id="signupPassword" placeholder="Password" required>
-        <span class="toggle-pass" onclick="togglePass('signupPassword')">Show</span>
-      </div>
-      <button type="submit">Sign Up</button>
-    </form>
+    <h2>Login</h2>
+    <input type="email" id="loginEmail" placeholder="Email" required>
+    <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password" required>
+    <button onclick="login()">Login</button>
 
-    <!-- Login Form -->
-    <form id="loginForm" style="display:none;">
-      <input type="email" id="loginEmail" placeholder="Email" required>
-      <div class="password-box">
-        <input type="password" id="loginPassword" placeholder="Password" required>
-        <span class="toggle-pass" onclick="togglePass('loginPassword')">Show</span>
-      </div>
-      <button type="submit">Login</button>
-    </form>
-
-    <div id="g_id_onload"
-         data-client_id="381785853096-c62h6hko38dpmekiksbpcvec40208h7a.apps.googleusercontent.com"
-         data-callback="handleGoogleResponse">
-    </div>
-    <div class="g_id_signin" data-type="standard"></div>
-
-    <div class="toggle-link" onclick="toggleForms()">Already have an account? Login</div>
-    <div id="output"></div>
+    <div class="msg" id="msg"></div>
   </div>
 
-<script>
-  // 🔗 अपना Apps Script URL यहां डालो
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzO_yw20ofur1yhaDm7QujOmpSRTuYX6HYxfWXTXKJgjlhY1qAHlWhqToaUszuFbVb_tg/exec";
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbzDnRayr-TQfZnjtAP8me4QHkTWNVF_oc3OzKK8VfERNOSIH2TbCI0cIubNqjSeDv0I9w/exec"; // यहां अपना Apps Script URL डाल
 
-  const signupForm = document.getElementById("signupForm");
-  const loginForm = document.getElementById("loginForm");
-  const formTitle = document.getElementById("formTitle");
-  const output = document.getElementById("output");
-
-  function togglePass(id) {
-    const field = document.getElementById(id);
-    field.type = field.type === "password" ? "text" : "password";
-  }
-
-  function toggleForms() {
-    if (signupForm.style.display === "none") {
-      signupForm.style.display = "block";
-      loginForm.style.display = "none";
-      formTitle.textContent = "Sign Up";
-      document.querySelector(".toggle-link").textContent = "Already have an account? Login";
-    } else {
-      signupForm.style.display = "none";
-      loginForm.style.display = "block";
-      formTitle.textContent = "Login";
-      document.querySelector(".toggle-link").textContent = "Don't have an account? Sign Up";
+    async function postJSON(data) {
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+        return await res.json();
+      } catch (err) {
+        return { success: false, message: "❌ Failed to fetch: " + err.message };
+      }
     }
-    output.textContent = "";
-  }
 
-  async function postData(data) {
-    try {
-      let res = await fetch(SCRIPT_URL, {
-        method: "POST",
-        body: JSON.stringify(data),
-        headers: { "Content-Type": "application/json" }
-      });
-      let text = await res.text();
-      try { return JSON.parse(text); }
-      catch { return { status:"error", message:text }; }
-    } catch (err) {
-      return { status:"error", message:err.toString() };
+    async function signup() {
+      const email = document.getElementById("signupEmail").value;
+      const password = document.getElementById("signupPassword").value;
+
+      let res = await postJSON({ type: "signup", email, password });
+      document.getElementById("msg").innerText = res.message;
     }
-  }
 
-  signupForm.addEventListener("submit", async e => {
-    e.preventDefault();
-    const name = document.getElementById("signupName").value;
-    const email = document.getElementById("signupEmail").value;
-    const password = document.getElementById("signupPassword").value;
-    const result = await postData({ action:"signup", username:name, email, password });
-    showMessage(result);
-  });
+    async function login() {
+      const email = document.getElementById("loginEmail").value;
+      const password = document.getElementById("loginPassword").value;
 
-  loginForm.addEventListener("submit", async e => {
-    e.preventDefault();
-    const email = document.getElementById("loginEmail").value;
-    const password = document.getElementById("loginPassword").value;
-    const result = await postData({ action:"login", email, password });
-    showMessage(result);
-    if (result.status === "success") {
-      setTimeout(() => window.location.href="resumebuilder.html", 1200);
+      let res = await postJSON({ type: "login", email, password });
+      document.getElementById("msg").innerText = res.message;
     }
-  });
-
-  function showMessage(res) {
-    output.textContent = res.message || "Unknown error";
-    output.className = res.status === "success" ? "success" : "error";
-  }
-
-  // Google Sign-In Callback
-  async function handleGoogleResponse(response) {
-    const data = parseJwt(response.credential);
-    const result = await postData({
-      action:"google", 
-      email:data.email, 
-      username:data.name
-    });
-    showMessage(result);
-    if (result.status === "success") {
-      setTimeout(() => window.location.href="resumebuilder.html", 1200);
-    }
-  }
-
-  function parseJwt(token) {
-    let base64Url = token.split('.')[1];
-    let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    let jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
-      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-    return JSON.parse(jsonPayload);
-  }
-</script>
+  </script>
 </body>
 </html>
